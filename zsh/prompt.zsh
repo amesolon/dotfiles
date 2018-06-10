@@ -64,7 +64,7 @@ suspended_jobs() {
     if [[ $sj == "" ]]; then
         echo ""
     else
-        echo "%{$FG[208]%}✱%f"
+        echo "%{%F{208}%}✱%f"
     fi
 }
 
@@ -76,4 +76,4 @@ precmd() {
 PROMPT_SYMBOL='❯'
 
 export PROMPT='%(?.%F{207}.%F{160})$PROMPT_SYMBOL%f '
-export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f `upstream_branch``git_arrows``suspended_jobs`'
+export RPROMPT='`git_dirty`%F{241}$vcs_info_msg_0_%f`git_arrows``suspended_jobs`'

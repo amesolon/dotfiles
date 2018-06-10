@@ -49,38 +49,70 @@ if [[ -d ~/bin ]]; then
     export PATH=~/bin:$PATH
 fi
 
-[ -z "$TMUX" ] && export TERM=xterm-256color-italic
-
 # install rbenv
 if command_exists rbenv; then
     eval "$(rbenv init -)"
 fi
 
-if [[ -d ~/.rvm ]]; then
-    PATH=$HOME/.rvm/bin:$PATH # Add RVM to PATH for scripting
-    source ~/.rvm/scripts/rvm
-fi
+# add a config file for ripgrep
+export RIPGREP_CONFIG_PATH="$HOME/.rgrc"
 
-# alias git to hub
-if command_exists hub; then
-    eval "$(hub alias -s)"
+if [ -z "$TMUX" ]; then
+    export TERM=xterm-256color-italic
+else
+    export TERM=tmux-256color-italic
 fi
 
 [ -f ~/.fzf.zsh ] && source ~/.fzf.zsh
 export FZF_DEFAULT_COMMAND='rg --files --no-ignore --hidden --follow -g "!{.git,node_modules}/*" 2> /dev/null'
 export FZF_CTRL_T_COMMAND="$FZF_DEFAULT_COMMAND"
 
-# zplug config
-export ZPLUG_LOADFILE=$DOTFILES/zsh/zplug.sh
+# Base16 shell setup
+BASE16_SHELL=$HOME/.config/base16-shell/
+[ -n "$PS1" ] && [ -s $BASE16_SHELL/profile_helper.sh ] && eval "$($BASE16_SHELL/profile_helper.sh)"
 
-# only source zplug on initial load
-if [ -z ${RELOAD} ]; then
-    if ! [ type "zplug" > /dev/null 2>&1 ]; then
-        source ~/.zplug/init.zsh
+if command_exists direnv; then
+    eval "$(direnv hook zsh)"
+fi
+
+if [ -z ${RELOAD}  ]; then
+    export ZPLUG_HOME=/usr/local/opt/zplug
+    source $ZPLUG_HOME/init.zsh
+    zplug 'zplug/zplug', hook-build:'zplug --self-manage'
+    zplug 'zsh-users/zsh-syntax-highlighting', defer:2
+    zplug 'zsh-users/zsh-autosuggestions'
+    export NVM_AUTO_USE=false
+    export NVM_NO_USE=true
+    zplug 'lukechilds/zsh-nvm'
+
+    if ! zplug check; then
+        printf "Install? [y/N]: "
+        if read -q; then
+            echo; zplug install
+        fi
     fi
+
+    zplug load
+fi
+# alias git to hub
+if command_exists hub; then
+    eval "$(hub alias -s)"
 fi
 
-# npx command shell fallback
-if command_exists npx; then
-    source <(npx --shell-auto-fallback zsh)
-fi
+# add color to man pages
+export MANROFFOPT='-c'
+export LESS_TERMCAP_mb=$(tput bold; tput setaf 2)
+export LESS_TERMCAP_md=$(tput bold; tput setaf 6)
+export LESS_TERMCAP_me=$(tput sgr0)
+export LESS_TERMCAP_so=$(tput bold; tput setaf 3; tput setab 4)
+export LESS_TERMCAP_se=$(tput rmso; tput sgr0)
+export LESS_TERMCAP_us=$(tput smul; tput bold; tput setaf 7)
+export LESS_TERMCAP_ue=$(tput rmul; tput sgr0)
+export LESS_TERMCAP_mr=$(tput rev)
+export LESS_TERMCAP_mh=$(tput dim)
+
+# add shellcheck config
+# For a full list of errors, refer to
+# https://github.com/koalaman/shellcheck/wiki
+#
+# export SHELLCHECK_OPTS=""
